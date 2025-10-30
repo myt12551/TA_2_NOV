@@ -120,7 +120,7 @@
   @if (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin')
   <div class="row">
     <div class="col-md-12">
-      <a href="{{ route('purchase-orders.index') }}">
+      <a href="{{ route('new-purchase-orders.index') }}">
         <div class="card card-hover">
           <div class="box bg-warning">
             <div class="row align-items-center">

@@ -120,6 +120,7 @@ INSERT INTO `categories` VALUES ('23', 'Kesehatan & Perawatan Diri', NULL, '2025
 INSERT INTO `categories` VALUES ('24', 'Kebutuhan Bayi & Anak', NULL, '2025-07-22 14:16:15', '2025-07-22 14:16:15');
 INSERT INTO `categories` VALUES ('25', 'Alat Tulis & Perlengkapan Sekolah', NULL, '2025-07-22 14:16:24', '2025-07-22 14:16:24');
 INSERT INTO `categories` VALUES ('26', 'Peralatan Rumah Tangga', NULL, '2025-07-22 14:16:33', '2025-07-22 14:16:33');
+INSERT INTO `categories` VALUES ('27', 'Uncategorized', 'Automatically created placeholder category', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
 
 
 CREATE TABLE `customers` (
@@ -237,6 +238,19 @@ CREATE TABLE `items` (
 
 INSERT INTO `items` VALUES ('307', 'Mie Goreng Aceh', 'HVDM6240', '21', '2500', '3500', '46', 'default.png', '2025-09-04 14:22:55', '2025-10-07 11:47:52');
 INSERT INTO `items` VALUES ('308', 'Mie Goreng Rendang', 'HXVW4621', '21', '2500', '3500', '62', 'default.png', '2025-09-04 14:23:40', '2025-10-07 11:47:52');
+INSERT INTO `items` VALUES ('309', 'Kecap ABC manis', 'SP-309', '27', '0', '0', '0', 'default.png', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
+INSERT INTO `items` VALUES ('310', 'Mineral Akuzu', 'SP-310', '27', '0', '0', '0', 'default.png', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
+INSERT INTO `items` VALUES ('311', 'Tisu Medic', 'SP-311', '27', '0', '0', '0', 'default.png', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
+INSERT INTO `items` VALUES ('312', 'Saus ABC 500ML', 'SP-312', '27', '0', '0', '0', 'default.png', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
+INSERT INTO `items` VALUES ('313', 'Kecap ABC 750ML', 'SP-313', '27', '0', '0', '0', 'default.png', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
+
+INSERT INTO `item_supplier` VALUES ('1', '307', '29', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
+INSERT INTO `item_supplier` VALUES ('2', '308', '29', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
+INSERT INTO `item_supplier` VALUES ('3', '309', '29', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
+INSERT INTO `item_supplier` VALUES ('4', '310', '30', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
+INSERT INTO `item_supplier` VALUES ('5', '311', '30', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
+INSERT INTO `item_supplier` VALUES ('6', '312', '31', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
+INSERT INTO `item_supplier` VALUES ('7', '313', '31', '2025-10-27 19:23:04', '2025-10-27 19:23:04');
 
 
 CREATE TABLE `job_batches` (
@@ -358,6 +372,11 @@ INSERT INTO `migrations` VALUES ('34', '2025_10_13_000006_create_invoices_table'
 INSERT INTO `migrations` VALUES ('35', '2025_10_23_000001_add_unit_and_current_stock_to_purchase_request_items', '13');
 INSERT INTO `migrations` VALUES ('36', '2025_10_23_000005_add_fields_to_purchase_order_items', '14');
 INSERT INTO `migrations` VALUES ('37', '2025_10_23_000007_add_required_columns_to_purchase_orders_and_items', '15');
+INSERT INTO `migrations` VALUES ('38', '2025_10_30_000001_consolidate_purchase_orders_table', '16');
+INSERT INTO `migrations` VALUES ('39', '2025_10_30_000002_consolidate_purchase_order_items_table', '16');
+INSERT INTO `migrations` VALUES ('40', '2025_10_30_000003_migrate_supplier_products_to_item_supplier', '16');
+INSERT INTO `migrations` VALUES ('41', '2025_10_30_000004_drop_supplier_products_if_empty', '16');
+INSERT INTO `migrations` VALUES ('42', '2025_10_30_000005_ensure_transactions_online_fields', '16');
 
 
 CREATE TABLE `payment_methods` (

@@ -203,14 +203,14 @@
                     <span class="hide-menu">Barang</span>
                   </a>
                 </li>
-                <li class="sidebar-item {{ request()->is('inventory/stock-movement*') ? 'active' : '' }}">
-                  <a href="{{ route('inventory.stock-movement.index') }}" class="sidebar-link">
+                <li class="sidebar-item {{ request()->is('stock-movement*') ? 'active' : '' }}">
+                  <a href="{{ route('stock-movement.index') }}" class="sidebar-link">
                     <i class="mdi mdi-chart-line"></i>
                     <span class="hide-menu">Analisis Stok</span>
                   </a>
                 </li>
                 <li class="sidebar-item {{ request()->is('purchase-orders*') ? 'active' : '' }}">
-                  <a href="{{ route('purchase-orders.index') }}" class="sidebar-link">
+                  <a href="{{ route('new-purchase-orders.index') }}" class="sidebar-link">
                     <i class="mdi mdi-file-document-box"></i>
                     <span class="hide-menu">Purchase Order</span>
                   </a>
@@ -333,7 +333,7 @@
       <div class="page-breadcrumb">
         <div class="row">
           <div class="col-12 d-flex no-block align-items-center">
-            <h4 class="page-title">{{ $title }}</h4>
+            <h4 class="page-title">{{ $title ?? 'Dashboard' }}</h4>
           </div>
         </div>
       </div>

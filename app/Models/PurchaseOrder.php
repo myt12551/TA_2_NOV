@@ -26,6 +26,22 @@ class PurchaseOrder extends Model
         'total_amount',
         'supplier_confirmed',
         'supplier_notes',
+        'contact_person',
+        'contact_phone',
+        'estimated_delivery_date',
+        'confirmation_date',
+        'confirmed_delivery_date',
+        'sent_at'
+    ];
+
+    protected $casts = [
+        'po_date' => 'datetime',
+        'estimated_delivery_date' => 'datetime',
+        'confirmation_date' => 'datetime',
+        'confirmed_delivery_date' => 'datetime',
+        'sent_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**

@@ -86,7 +86,7 @@ class StockMovementController extends Controller
             })->values();
         }
 
-        return view('inventory.stock-movement.index', [
+        return view('stock-movement.index', [
             'analyses' => $items,
             'selectedStatus' => $status
         ]);
@@ -133,7 +133,7 @@ class StockMovementController extends Controller
             ->orderBy('avg_daily_sales', 'desc')
             ->get();
 
-        return view('inventory.stock-movement.fast-moving', [
+        return view('stock-movement.fast-moving', [
             'analyses' => $items
         ]);
     }
@@ -179,7 +179,7 @@ class StockMovementController extends Controller
             ->orderBy('avg_daily_sales', 'asc')
             ->get();
 
-        return view('inventory.stock-movement.slow-moving', [
+        return view('stock-movement.slow-moving', [
             'analyses' => $items
         ]);
     }
@@ -256,18 +256,66 @@ class StockMovementController extends Controller
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->setTitle('Analisis Pergerakan Barang');
 
+            // Add report header
+            $sheet->mergeCells('A1:J1');
+            $sheet->setCellValue('A1', 'LAPORAN ANALISIS PERGERAKAN BARANG');
+            $sheet->getStyle('A1')->applyFromArray([
+                'font' => [
+                    'bold' => true,
+                    'size' => 14
+                ],
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                    'vertical' => Alignment::VERTICAL_CENTER
+                ]
+            ]);
+
+            // Add report metadata
+            $sheet->mergeCells('A2:J2');
+            $sheet->setCellValue('A2', 'Periode Analisis: ' . $startDate->format('d/m/Y') . ' - ' . now()->format('d/m/Y') . ' (30 Hari Terakhir)');
+            $sheet->getStyle('A2')->applyFromArray([
+                'font' => ['italic' => true],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
+            ]);
+            
+            // Add data timestamp
+            $sheet->mergeCells('A3:J3');
+            $sheet->setCellValue('A3', 'Data Diambil pada: ' . now()->format('d/m/Y H:i:s'));
+            $sheet->getStyle('A3')->applyFromArray([
+                'font' => ['italic' => true],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
+            ]);
+
+            // Add status summary
+            $fastCount = $analyses->where('movement_status', 'FAST')->count();
+            $normalCount = $analyses->where('movement_status', 'NORMAL')->count();
+            $slowCount = $analyses->where('movement_status', 'SLOW')->count();
+
+            $sheet->mergeCells('A4:J4');
+            $sheet->setCellValue('A4', sprintf(
+                'Ringkasan Status Pergerakan: %d Fast Moving | %d Normal | %d Slow Moving',
+                $fastCount, $normalCount, $slowCount
+            ));
+            $sheet->getStyle('A3')->applyFromArray([
+                'font' => ['bold' => true],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
+            ]);
+
+            // Add empty row for spacing
+            $sheet->mergeCells('A4:J4');
+
             // Set headers
             $headers = [
-                'A1' => ['No', 8],
-                'B1' => ['Kode Barang', 15],
-                'C1' => ['Nama Barang', 30],
-                'D1' => ['Kategori', 20],
-                'E1' => ['Stok', 12],
-                'F1' => ['Terjual (30 Hari)', 15],
-                'G1' => ['Rata-rata/Hari', 15],
-                'H1' => ['Status', 15],
-                'I1' => ['Estimasi Habis', 15],
-                'J1' => ['Rekomendasi', 20]
+                'A5' => ['No', 8],
+                'B5' => ['Kode Barang', 15],
+                'C5' => ['Nama Barang', 30],
+                'D5' => ['Kategori', 20],
+                'E5' => ['Stok', 12],
+                'F5' => ['Terjual (30 Hari)', 15],
+                'G5' => ['Rata-rata/Hari', 15],
+                'H5' => ['Status', 15],
+                'I5' => ['Estimasi Habis', 15],
+                'J5' => ['Rekomendasi', 20]
             ];
 
             foreach ($headers as $cell => list($value, $width)) {
@@ -277,7 +325,7 @@ class StockMovementController extends Controller
             }
 
             // Style header row
-            $sheet->getStyle('A1:J1')->applyFromArray([
+            $sheet->getStyle('A5:J5')->applyFromArray([
                 'font' => [
                     'bold' => true,
                     'color' => ['rgb' => 'FFFFFF']
@@ -296,18 +344,25 @@ class StockMovementController extends Controller
             ]);
 
             // Fill data
-            $row = 2;
+            $row = 6;
             foreach ($analyses as $index => $analysis) {
+                $daysUntilEmpty = $analysis->avg_daily_sales > 0 ? ceil($analysis->stock / $analysis->avg_daily_sales) : null;
+                $recommendation = match($analysis->movement_status) {
+                    'FAST' => 'Sarankan Restock',
+                    'SLOW' => 'Sarankan Evaluasi',
+                    default => 'Pantau Pergerakan'
+                };
+
                 $sheet->setCellValue('A' . $row, $index + 1);
-                $sheet->setCellValue('B' . $row, $analysis->item->code);
-                $sheet->setCellValue('C' . $row, $analysis->item->name);
-                $sheet->setCellValue('D' . $row, $analysis->item->category->name);
-                $sheet->setCellValue('E' . $row, $analysis->current_stock);
-                $sheet->setCellValue('F' . $row, $analysis->total_sold_30_days);
+                $sheet->setCellValue('B' . $row, $analysis->code);
+                $sheet->setCellValue('C' . $row, $analysis->name);
+                $sheet->setCellValue('D' . $row, $analysis->category->name);
+                $sheet->setCellValue('E' . $row, $analysis->stock);
+                $sheet->setCellValue('F' . $row, $analysis->total_sold);
                 $sheet->setCellValue('G' . $row, number_format($analysis->avg_daily_sales, 2));
                 $sheet->setCellValue('H' . $row, $analysis->movement_status);
-                $sheet->setCellValue('I' . $row, $analysis->days_until_empty ?? 'Tidak bergerak');
-                $sheet->setCellValue('J' . $row, $analysis->recommendation);
+                $sheet->setCellValue('I' . $row, $daysUntilEmpty ? "$daysUntilEmpty hari" : 'Tidak bergerak');
+                $sheet->setCellValue('J' . $row, $recommendation);
 
                 // Status color coding
                 $statusColor = match($analysis->movement_status) {
@@ -341,6 +396,45 @@ class StockMovementController extends Controller
 
                 $row++;
             }
+
+            // Add legend
+            $row += 2;
+            $sheet->mergeCells("A{$row}:J{$row}");
+            $sheet->setCellValue("A{$row}", 'KETERANGAN:');
+            $sheet->getStyle("A{$row}")->applyFromArray([
+                'font' => ['bold' => true]
+            ]);
+
+            $row++;
+            $legends = [
+                'Fast Moving (> 3 unit/hari)' => '00B050',
+                'Normal (0.5 - 3 unit/hari)' => 'FFB800',
+                'Slow Moving (< 0.5 unit/hari)' => 'FF0000'
+            ];
+
+            foreach ($legends as $text => $color) {
+                $sheet->mergeCells("A{$row}:J{$row}");
+                $sheet->setCellValue("A{$row}", $text);
+                $sheet->getStyle("A{$row}")->applyFromArray([
+                    'font' => ['color' => ['rgb' => $color]]
+                ]);
+                $row++;
+            }
+
+            // Add footer
+            $row += 2;
+            $sheet->mergeCells("A{$row}:J{$row}");
+            $sheet->setCellValue("A{$row}", 'Laporan dibuat pada: ' . now()->format('d/m/Y H:i:s'));
+            $sheet->getStyle("A{$row}")->applyFromArray([
+                'font' => ['italic' => true],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT]
+            ]);
+
+            // Protect worksheet
+            $sheet->getProtection()->setSheet(true);
+            $sheet->getProtection()->setSort(true);
+            $sheet->getProtection()->setInsertRows(true);
+            $sheet->getProtection()->setDeleteRows(true);
 
             // Output file
             $writer = new Xlsx($spreadsheet);

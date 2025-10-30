@@ -8,6 +8,7 @@ use App\Models\WholesalePrice;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ItemController extends Controller
@@ -87,8 +88,13 @@ class ItemController extends Controller
     ]);
 
     if ($request->hasFile('picture')) {
-      $filename = time() . '.' . $request->picture->extension();
-      $request->picture->move(public_path('assets/images/items'), $filename);
+      $file = $request->file('picture');
+      $filename = time() . '.' . $file->getClientOriginalExtension();
+      
+      // Simpan file ke storage/app/public/items
+      $path = $file->storeAs('items', $filename, 'public');
+      
+      // Pastikan hanya nama file yang disimpan ke database
       $picture_name = $filename;
     } else {
       $picture_name = 'default.png';
@@ -139,9 +145,16 @@ class ItemController extends Controller
     ]);
 
     if ($request->hasFile('picture')) {
-      $filename = time() . '.' . $request->picture->extension();
-      $request->picture->move(public_path('assets/images/items'), $filename);
-      $item->picture = $filename;
+      // Hapus file lama jika bukan default
+      if ($item->picture && $item->picture !== 'default.png') {
+        Storage::disk('public')->delete('items/' . $item->picture);
+      }
+
+      $file = $request->file('picture');
+      $filename = time() . '.' . $file->getClientOriginalExtension();
+      
+      // Simpan file baru
+      $path = $file->storeAs('items', $filename, 'public');
       $picture_name = $filename;
     } else {
       $picture_name = $item->picture;
@@ -169,15 +182,14 @@ class ItemController extends Controller
    */
   public function destroy(Item $item): RedirectResponse
   {
-    // delete item
-    $item->delete();
-    // delete image from storage if not default image
-    if (isset($item->picture)) {
-      if ($item->picture !== 'default.png') {
-        File::delete('public/images/items/' . $item->picture);
-      }
+    // Hapus gambar dari storage jika bukan default
+    if ($item->picture && $item->picture !== 'default.png') {
+        Storage::disk('public')->delete('items/' . $item->picture);
     }
-    // redirect to index with success message
+
+    // Hapus item dari database
+    $item->delete();
+
     return redirect()->route('item.index')->with('status', 'Barang berhasil dihapus');
   }
 }

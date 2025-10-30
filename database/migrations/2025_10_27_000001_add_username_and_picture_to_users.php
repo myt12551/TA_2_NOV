@@ -9,15 +9,28 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('username')->unique()->after('email');
-            $table->string('picture')->nullable()->after('role');
+            // Cek apakah kolom username sudah ada
+            if (!Schema::hasColumn('users', 'username')) {
+                $table->string('username')->unique()->after('email');
+            }
+            
+            // Cek apakah kolom picture sudah ada
+            if (!Schema::hasColumn('users', 'picture')) {
+                $table->string('picture')->nullable()->after('role');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['username', 'picture']);
+            // Hanya drop kolom jika mereka ada
+            if (Schema::hasColumn('users', 'username')) {
+                $table->dropColumn('username');
+            }
+            if (Schema::hasColumn('users', 'picture')) {
+                $table->dropColumn('picture');
+            }
         });
     }
 };

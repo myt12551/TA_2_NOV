@@ -70,7 +70,7 @@
             const tableBody = document.getElementById('itemsTable').getElementsByTagName('tbody')[0];
             tableBody.innerHTML = '';
             if (!supplierId) return;
-            fetch(`/purchase-orders/get-items/${supplierId}`)
+            fetch(`/api/suppliers/${supplierId}/items`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.length === 0) {

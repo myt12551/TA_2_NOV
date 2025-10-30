@@ -9,7 +9,7 @@
     {{-- Baris judul dan tombol kembali --}}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5>Buat Goods Receipt</h5>
-        <a href="{{ route('purchase-orders.show', $po->id) }}" class="btn btn-sm btn-secondary">Kembali</a>
+        <a href="{{ route('new-purchase-orders.show', $po->id) }}" class="btn btn-sm btn-secondary">Kembali</a>
     </div>
 
     <div class="card">

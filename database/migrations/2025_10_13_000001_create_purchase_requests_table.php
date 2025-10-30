@@ -29,6 +29,15 @@ return new class extends Migration
             $table->date('request_date');
             // Current status: draft, pending, approved, rejected, cancelled
             $table->string('status')->default('pending');
+            // Approval fields (supervisor)
+            $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('approved_at')->nullable();
+            $table->string('approval_status')->default('pending'); // pending, approved, rejected
+            $table->text('approval_notes')->nullable();
+            $table->text('rejection_reason')->nullable();
+            // Validation document fields
+            $table->string('validation_document_path')->nullable();
+            $table->boolean('is_validated')->default(false);
             // Optional description or notes
             $table->text('description')->nullable();
             $table->timestamps();

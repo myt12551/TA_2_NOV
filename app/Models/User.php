@@ -51,4 +51,9 @@ class User extends Authenticatable
         $roles = is_array($roles) ? $roles : [$roles];
         return in_array($this->role, $roles, true);
     }
+
+    public function isSupervisor()
+    {
+        return $this->role === 'supervisor';
+    }
 }

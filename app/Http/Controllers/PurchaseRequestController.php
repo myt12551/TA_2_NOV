@@ -7,6 +7,7 @@ use App\Models\PurchaseRequestItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Controller for managing Purchase Requests (PR).
@@ -85,23 +86,81 @@ class PurchaseRequestController extends Controller
     }
 
     /**
-     * Approve a purchase request (supervisor action).
+     * Validate and approve a purchase request (supervisor action).
      */
-    public function approve($id)
+    public function approve(Request $request, $id)
     {
-        $pr = PurchaseRequest::findOrFail($id);
-        $pr->update(['status' => 'approved']);
-        return redirect()->route('procurement.index')->with('success', 'Permintaan pembelian disetujui');
+        // Check if user is supervisor
+        if (Auth::user()->role !== 'supervisor') {
+            return back()->withErrors(['error' => 'Hanya supervisor yang dapat menyetujui PR']);
+        }
+
+        $request->validate([
+            'validation_document' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'approval_notes' => 'nullable|string'
+        ]);
+
+        try {
+            DB::beginTransaction();
+            
+            $pr = PurchaseRequest::findOrFail($id);
+            
+            // Store validation document
+            $path = $request->file('validation_document')->store('pr-validation-docs', 'public');
+            
+            $pr->update([
+                'status' => 'approved',
+                'approval_status' => 'approved',
+                'validation_document_path' => $path,
+                'is_validated' => true,
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+                'approval_notes' => $request->approval_notes
+            ]);
+
+            DB::commit();
+            return redirect()->route('new-purchase-orders.index')
+                ->with('success', 'Permintaan pembelian berhasil divalidasi dan disetujui');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Gagal menyimpan validasi: ' . $e->getMessage()]);
+        }
     }
 
     /**
-     * Reject a purchase request (supervisor action).
+     * Reject a purchase request with reason (supervisor action).
      */
-    public function reject($id)
+    public function reject(Request $request, $id)
     {
-        $pr = PurchaseRequest::findOrFail($id);
-        $pr->update(['status' => 'rejected']);
-        return redirect()->route('procurement.index')->with('success', 'Permintaan pembelian ditolak');
+        // Check if user is supervisor
+        if (Auth::user()->role !== 'supervisor') {
+            return back()->withErrors(['error' => 'Hanya supervisor yang dapat menolak PR']);
+        }
+
+        $request->validate([
+            'rejection_reason' => 'required|string|min:10'
+        ]);
+
+        try {
+            DB::beginTransaction();
+            
+            $pr = PurchaseRequest::findOrFail($id);
+            
+            $pr->update([
+                'status' => 'rejected',
+                'approval_status' => 'rejected',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+                'rejection_reason' => $request->rejection_reason
+            ]);
+
+            DB::commit();
+            return redirect()->route('new-purchase-orders.index')
+                ->with('success', 'Permintaan pembelian ditolak');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Gagal menyimpan penolakan: ' . $e->getMessage()]);
+        }
     }
 
     /**

@@ -12,7 +12,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\NewPurchaseOrderController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
@@ -34,16 +34,15 @@ use App\Http\Controllers\StockMovementController;
 
 Route::middleware('auth')->group(function () {
     // Stock Movement Analysis Routes under inventory
-    Route::prefix('inventory')->group(function () {
-        Route::prefix('stock-movement')->name('inventory.stock-movement.')->group(function () {
-            Route::get('/', [StockMovementController::class, 'index'])->name('index');
-            Route::get('/fast-moving', [StockMovementController::class, 'fastMoving'])->name('fast-moving');
-            Route::get('/slow-moving', [StockMovementController::class, 'slowMoving'])->name('slow-moving');
-            Route::get('/settings', [StockMovementController::class, 'settings'])->name('settings');
-            Route::put('/settings', [StockMovementController::class, 'updateSettings'])->name('settings.update');
-            Route::get('/analyze', [StockMovementController::class, 'analyze'])->name('analyze');
-            Route::get('/export', [StockMovementController::class, 'export'])->name('export');
-        });
+    // Stock Movement Analysis Routes (Independent Menu)
+    Route::prefix('stock-movement')->name('stock-movement.')->group(function () {
+        Route::get('/', [StockMovementController::class, 'index'])->name('index');
+        Route::get('/fast-moving', [StockMovementController::class, 'fastMoving'])->name('fast-moving');
+        Route::get('/slow-moving', [StockMovementController::class, 'slowMoving'])->name('slow-moving');
+        Route::get('/settings', [StockMovementController::class, 'settings'])->name('settings');
+        Route::put('/settings', [StockMovementController::class, 'updateSettings'])->name('settings.update');
+        Route::get('/analyze', [StockMovementController::class, 'analyze'])->name('analyze');
+        Route::get('/export', [StockMovementController::class, 'export'])->name('export');
     });
     
     // Procurement dashboard
@@ -53,20 +52,24 @@ Route::middleware('auth')->group(function () {
     // Purchase Requests
     Route::resource('purchase-requests', PurchaseRequestController::class);
     Route::post('purchase-requests/{purchase_request}/approve', [PurchaseRequestController::class, 'approve'])
-        ->name('purchase-requests.approve');
+        ->name('purchase-requests.approve')
+        ->middleware(IsSupervisor::class);
     Route::post('purchase-requests/{purchase_request}/reject', [PurchaseRequestController::class, 'reject'])
-        ->name('purchase-requests.reject');
+        ->name('purchase-requests.reject')
+        ->middleware(IsSupervisor::class);
 
-    // Purchase Orders
-    // Use resource with limited actions for create, store, and show
-    Route::resource('purchase-orders', PurchaseOrderController::class)->only(['create', 'store', 'show']);
-    // Validate PO (supplier confirmation)
-    Route::post('purchase-orders/{purchase_order}/validate', [PurchaseOrderController::class, 'validatePO'])
-        ->name('purchase-orders.validate');
-
-        // API: Get products provided by a supplier (used to prefill PO items when supplier is selected)
-        Route::get('purchase-orders/get-items/{supplier}', [PurchaseOrderController::class, 'getItemsBySupplier'])
-            ->name('purchase-orders.get-items');
+    // New Purchase Order System
+    Route::prefix('new-purchase-orders')->name('new-purchase-orders.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\NewPurchaseOrderController::class, 'index'])->name('index');
+        Route::get('/create/{pr}', [\App\Http\Controllers\NewPurchaseOrderController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\NewPurchaseOrderController::class, 'store'])->name('store');
+        Route::get('/{po}', [\App\Http\Controllers\NewPurchaseOrderController::class, 'show'])->name('show');
+        Route::get('/{po}/pdf', [\App\Http\Controllers\NewPurchaseOrderController::class, 'generatePDF'])->name('pdf');
+        Route::post('/{po}/mark-sent', [\App\Http\Controllers\NewPurchaseOrderController::class, 'markAsSent'])->name('mark-sent');
+        Route::post('/{po}/confirm', [\App\Http\Controllers\NewPurchaseOrderController::class, 'confirm'])->name('confirm');
+        Route::post('/{po}/create-gr', [\App\Http\Controllers\NewPurchaseOrderController::class, 'createGR'])->name('create-gr');
+        Route::post('/{po}/create-invoice', [\App\Http\Controllers\NewPurchaseOrderController::class, 'createInvoice'])->name('create-invoice');
+    });
 
     // Goods Receipts
     // Provide custom routes for creating and storing goods receipts tied to a purchase order.
@@ -94,7 +97,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('inventory-records', \App\Http\Controllers\InventoryRecordController::class)->except(['create', 'store']);
 });
 
-Route::delete('purchase-orders/delete-all', [PurchaseOrderController::class, 'deleteAll'])->name('purchase-orders.delete-all');
+// Removed old PO delete-all route
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -242,26 +245,23 @@ Route::middleware('auth')->group(function () {
     /*
      * API & PURCHASE ORDERS
      */
-    Route::get('/api/suppliers/{supplier}/items', [PurchaseOrderController::class, 'getItemsBySupplier'])
+    Route::get('/api/suppliers/{supplier}/items', [NewPurchaseOrderController::class, 'getItemsBySupplier'])
         ->name('po.supplier.items');
 
-    // PURCHASE ORDER – Admin gudang
-    Route::middleware(IsAdmin::class)->group(function () {
-        Route::resource('purchase-orders', PurchaseOrderController::class)->except('destroy');
-        Route::post('purchase-orders/{id}/upload-invoice', [PurchaseOrderController::class, 'uploadInvoice'])->name('purchase-orders.upload-invoice');
-        Route::get('purchase-orders/{id}/pdf', [PurchaseOrderController::class, 'exportPDF'])->name('purchase-orders.pdf');
+    // New Purchase Order System (Replaces old PO system)
+    Route::middleware(['auth'])->group(function () {
+        Route::prefix('new-purchase-orders')->name('new-purchase-orders.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\NewPurchaseOrderController::class, 'index'])->name('index');
+            Route::get('/create/{pr}', [\App\Http\Controllers\NewPurchaseOrderController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\NewPurchaseOrderController::class, 'store'])->name('store');
+            Route::get('/{po}', [\App\Http\Controllers\NewPurchaseOrderController::class, 'show'])->name('show');
+            Route::get('/{po}/pdf', [\App\Http\Controllers\NewPurchaseOrderController::class, 'generatePDF'])->name('pdf');
+            Route::post('/{po}/mark-sent', [\App\Http\Controllers\NewPurchaseOrderController::class, 'markAsSent'])->name('mark-sent');
+            Route::post('/{po}/confirm', [\App\Http\Controllers\NewPurchaseOrderController::class, 'confirm'])->name('confirm');
+            Route::post('/{po}/create-gr', [\App\Http\Controllers\NewPurchaseOrderController::class, 'createGR'])->name('create-gr');
+            Route::post('/{po}/create-invoice', [\App\Http\Controllers\NewPurchaseOrderController::class, 'createInvoice'])->name('create-invoice');
+        });
     });
-
-    // PURCHASE ORDER – Supervisor
-    Route::middleware(IsSupervisor::class)->group(function () {
-        Route::resource('purchase-orders', PurchaseOrderController::class)->only(['index','show']);
-        Route::post('purchase-orders/{id}/upload-invoice', [PurchaseOrderController::class, 'uploadInvoice'])->name('purchase-orders.upload-invoice');
-        Route::post('purchase-orders/{id}/validate', [PurchaseOrderController::class, 'validatePO'])->name('purchase-orders.validate');
-        Route::get('purchase-orders/{id}/pdf', [PurchaseOrderController::class, 'exportPDF'])->name('purchase-orders.pdf');
-    });
-
-    // Extra route for export PDF (hindari duplikasi dengan resource)
-    Route::get('purchase-orders/{id}/export-pdf', [PurchaseOrderController::class, 'exportPDF'])->name('purchase-orders.export-pdf');
 });
 
 // Auth scaffolding

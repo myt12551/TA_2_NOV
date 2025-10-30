@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class MarketplaceController extends Controller
 {
@@ -35,6 +36,17 @@ class MarketplaceController extends Controller
 
     public function show(\App\Models\Item $item)
     {
+        // Debug info untuk gambar
+        if (config('app.debug')) {
+            Log::info('Item Picture Debug:', [
+                'item_id' => $item->id,
+                'picture_field' => $item->picture,
+                'photo_url' => $item->photo_url,
+                'storage_path' => storage_path('app/public/items/' . ($item->picture ?? '')),
+                'public_path' => public_path('images/items/' . ($item->picture ?? '')),
+            ]);
+        }
+
         return view('marketplace.show', compact('item'));
     }
 }

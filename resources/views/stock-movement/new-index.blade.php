@@ -18,11 +18,11 @@
             <option value="normal" {{ $selectedStatus == 'normal' ? 'selected' : '' }}>Normal</option>
             <option value="slow" {{ $selectedStatus == 'slow' ? 'selected' : '' }}>Slow Moving</option>
           </select>
-          <div class="float-end">
-            <a href="{{ route('inventory.stock-movement.analyze') }}" class="btn btn-info rounded-2">
+            <div class="float-end">
+            <a href="{{ route('stock-movement.analyze') }}" class="btn btn-info rounded-2">
               <i class="mdi mdi-sync"></i> Update Analisis
             </a>
-            <a href="{{ route('inventory.stock-movement.export') }}" class="btn btn-success rounded-2 ms-2">
+            <a href="{{ route('stock-movement.export') }}" class="btn btn-success rounded-2 ms-2">
               <i class="mdi mdi-file-excel"></i> Export Excel
             </a>
           </div>
@@ -72,7 +72,7 @@
                   </td>
                   <td class="text-center">
                     @if($analysis->days_until_empty !== null && $analysis->days_until_empty <= 7)
-                      <a href="{{ route('purchase-orders.create') }}" class="btn btn-sm btn-warning">
+                      <a href="{{ route('new-purchase-orders.index') }}" class="btn btn-sm btn-warning">
                         <i class="mdi mdi-cart"></i> Buat PO
                       </a>
                     @else
@@ -103,7 +103,7 @@
     });
 
     $('#statusFilter').change(function() {
-      window.location.href = "{{ route('inventory.stock-movement.index') }}?status=" + $(this).val();
+      window.location.href = "{{ route('stock-movement.index') }}?status=" + $(this).val();
     });
 
     // Fokus ke search box saat halaman dimuat

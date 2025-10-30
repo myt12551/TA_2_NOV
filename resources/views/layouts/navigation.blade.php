@@ -18,11 +18,11 @@
 
                     @auth
                         @if (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin')
-                            <x-nav-link :href="route('purchase-orders.index')" :active="request()->routeIs('purchase-orders.*')">
+                            <x-nav-link :href="route('new-purchase-orders.index')" :active="request()->routeIs('new-purchase-orders.*')">
                                 {{ __('Purchase Order') }}
                             </x-nav-link>
 
-                            <x-nav-link :href="route('inventory.stock-movement.index')" :active="request()->routeIs('inventory.stock-movement.*')">
+                            <x-nav-link :href="route('stock-movement.index')" :active="request()->routeIs('stock-movement.*')">
                                 {{ __('Analisis Pergerakan Barang') }}
                             </x-nav-link>
                         @endif
@@ -83,11 +83,11 @@
 
             @auth
                 @if (auth()->user()->role === 'supervisor' || auth()->user()->role === 'admin')
-                    <x-responsive-nav-link :href="route('purchase-orders.index')" :active="request()->routeIs('purchase-orders.*')">
+                    <x-responsive-nav-link :href="route('new-purchase-orders.index')" :active="request()->routeIs('new-purchase-orders.*')">
                         {{ __('Purchase Order') }}
                     </x-responsive-nav-link>
 
-                    <x-responsive-nav-link :href="route('inventory.stock-movement.index')" :active="request()->routeIs('inventory.stock-movement.*')">
+                    <x-responsive-nav-link :href="route('stock-movement.index')" :active="request()->routeIs('stock-movement.*')">
                         {{ __('Analisis Pergerakan Barang') }}
                     </x-responsive-nav-link>
                 @endif

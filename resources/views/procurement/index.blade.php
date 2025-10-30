@@ -67,7 +67,7 @@
                                 {{-- PO column --}}
                                 <td class="text-center">
                                     @if (!$po && $pr->status === 'approved')
-                                        <a href="{{ route('purchase-orders.create', ['purchase_request_id' => $pr->id]) }}" class="btn btn-sm btn-primary">Buat PO</a>
+                                        <a href="{{ route('new-purchase-orders.create', ['pr' => $pr->id]) }}" class="btn btn-sm btn-primary">Buat PO</a>
                                     @elseif ($po)
                                         <div><strong>No PO:</strong> {{ $po->po_number }}</div>
                                         <div><strong>Status:</strong>
@@ -76,9 +76,9 @@
                                             </span>
                                         </div>
                                         <div class="mt-1">
-                                            <a href="{{ route('purchase-orders.show', $po->id) }}" class="btn btn-sm btn-info mb-1">Detail PO</a>
+                                            <a href="{{ route('new-purchase-orders.show', $po->id) }}" class="btn btn-sm btn-info mb-1">Detail PO</a>
                                             @if ($po->status === 'draft')
-                                                <form action="{{ route('purchase-orders.validate', $po->id) }}" method="POST" class="d-inline">
+                                                <form action="{{ route('new-purchase-orders.confirm', $po->id) }}" method="POST" class="d-inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-sm btn-warning mb-1">Konfirmasi Supplier</button>
                                                 </form>

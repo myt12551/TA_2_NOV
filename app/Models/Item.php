@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
 
 class Item extends Model
 {
@@ -37,18 +38,28 @@ class Item extends Model
 
     public function getPhotoUrlAttribute(): string
     {
-        $p = (string) ($this->picture ?? '');
-
-        if ($p && preg_match('#^https?://#i', $p)) {
-            return $p;
-        }
-        if ($p && file_exists(public_path('storage/' . $p))) {
-            return asset('storage/' . $p);
-        }
-        if ($p && file_exists(public_path('images/items/' . $p))) {
-            return asset('images/items/' . $p);
+        // Jika tidak ada gambar
+        if (empty($this->picture)) {
+            return asset('images/no-image.png');
         }
 
+        // Jika gambar adalah URL lengkap
+        if (filter_var($this->picture, FILTER_VALIDATE_URL)) {
+            return $this->picture;
+        }
+
+        // Coba cari gambar di storage publik
+        $filename = basename($this->picture);
+        if (Storage::disk('public')->exists("items/{$filename}")) {
+            return asset("storage/items/{$filename}");
+        }
+
+        // Coba cari di folder public/images/items
+        if (file_exists(public_path("images/items/{$filename}"))) {
+            return asset("images/items/{$filename}");
+        }
+
+        // Fallback ke gambar default
         return asset('images/no-image.png');
     }
 
