@@ -25,11 +25,13 @@ class UserFactory extends Factory
     {
         return [
             'name' => $this->faker->name(),
-            'email' => $this->faker->unique()->safeEmail(),
             'username' => $this->faker->unique()->userName(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'phone' => $this->faker->phoneNumber(),
+            'address' => $this->faker->address(),
             'role' => ['admin', 'supervisor', 'cashier'][rand(0, 2)],
             'password' => static::$password ??= Hash::make('password'),
-            'picture' => 'default.jpg',
+            'picture' => 'profile.jpg',
             'remember_token' => Str::random(10)
         ];
     }

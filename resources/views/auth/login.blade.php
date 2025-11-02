@@ -4,16 +4,20 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <!-- Tell the browser to be responsive to screen width -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{{ config('APP_NAME', 'Teaching factory') }}</title>
-  <!-- Favicon icon -->
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon.png">
-  <!-- Custom CSS -->
   <link href="/dist/css/style.min.css" rel="stylesheet">
-
   <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+  <script>
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+  </script>
 </head>
 
 <body>
@@ -48,7 +52,7 @@
             </span>
           </div>
           <!-- Form -->
-          <form class="form-horizontal mt-3" id="loginform" action="/login" method="POST">
+                    <form class="form-horizontal mt-3" id="loginform" action="{{ route('login') }}" method="POST">
             @csrf
             @if ($errors->any())
               <div class="alert alert-danger">
@@ -66,9 +70,14 @@
                     <span class="input-group-text bg-success text-white h-100" id="basic-addon1"><i
                         class="mdi mdi-account fs-4"></i></span>
                   </div>
-                  <input type="text" class="form-control form-control-lg @error('error') is-invalid @enderror"
-                    placeholder="Username" name="username" aria-label="Username" aria-describedby="basic-addon1"
-                    required="" autofocus />
+                  <input type="text" class="form-control form-control-lg @error('username') is-invalid @enderror"
+                    placeholder="Email atau Username" name="username" value="{{ old('username') }}"
+                    aria-label="Username" aria-describedby="basic-addon1" required autofocus />
+                  @error('username')
+                    <div class="invalid-feedback">
+                        {{ $message }}
+                    </div>
+                  @enderror
                 </div>
                 <div class="input-group mt-3">
                   <div class="input-group-prepend">

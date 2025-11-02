@@ -21,7 +21,8 @@ class Item extends Model
         'cost_price',
         'selling_price',
         'stock',
-        'picture'
+        'picture',
+        'unit'
     ];
 
     protected $casts = [
@@ -81,5 +82,15 @@ class Item extends Model
     public function stockMovementAnalysis()
     {
         return $this->hasOne(StockMovementAnalysis::class);
+    }
+
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class, 'item_supplier');
+    }
+
+    public function supplierProducts()
+    {
+        return $this->hasMany(SupplierProduct::class);
     }
 }

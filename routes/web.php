@@ -45,18 +45,32 @@ Route::middleware('auth')->group(function () {
         Route::get('/export', [StockMovementController::class, 'export'])->name('export');
     });
     
-    // Procurement dashboard
-    // Displays a consolidated table for the entire PR–PO–GR–Invoice workflow.
-    Route::get('/procurement', [ProcurementController::class, 'index'])
-        ->name('procurement.index');
-    // Purchase Requests
-    Route::resource('purchase-requests', PurchaseRequestController::class);
-    Route::post('purchase-requests/{purchase_request}/approve', [PurchaseRequestController::class, 'approve'])
-        ->name('purchase-requests.approve')
-        ->middleware(IsSupervisor::class);
-    Route::post('purchase-requests/{purchase_request}/reject', [PurchaseRequestController::class, 'reject'])
-        ->name('purchase-requests.reject')
-        ->middleware(IsSupervisor::class);
+    // Procurement Management Routes
+    Route::prefix('procurement')->group(function () {
+        // Dashboard Overview
+        Route::get('/', [ProcurementController::class, 'index'])->name('procurement.index');
+        
+        // Purchase Request Routes
+        Route::prefix('purchase-requests')->name('purchase-requests.')->group(function () {
+            // List and Form Routes
+            Route::get('/', [PurchaseRequestController::class, 'index'])->name('index');
+            Route::get('/create', [PurchaseRequestController::class, 'create'])->name('create');
+            Route::post('/', [PurchaseRequestController::class, 'store'])->name('store');
+            Route::get('/{purchase_request}', [PurchaseRequestController::class, 'show'])->name('show');
+            
+            // Supplier Products API
+            Route::get('/get-supplier-items/{supplier}', [PurchaseRequestController::class, 'getSupplierItems'])
+                ->name('get.supplier.items');
+            
+            // Approval Routes (Supervisor Only)
+            Route::middleware(IsSupervisor::class)->group(function () {
+                Route::post('/{purchase_request}/approve', [PurchaseRequestController::class, 'approve'])
+                    ->name('approve');
+                Route::post('/{purchase_request}/reject', [PurchaseRequestController::class, 'reject'])
+                    ->name('reject');
+            });
+        });
+    });
 
     // New Purchase Order System
     Route::prefix('new-purchase-orders')->name('new-purchase-orders.')->group(function () {
@@ -245,8 +259,12 @@ Route::middleware('auth')->group(function () {
     /*
      * API & PURCHASE ORDERS
      */
-    Route::get('/api/suppliers/{supplier}/items', [NewPurchaseOrderController::class, 'getItemsBySupplier'])
-        ->name('po.supplier.items');
+    Route::get('/api/suppliers/{supplier}/items', [App\Http\Controllers\Api\SupplierProductController::class, 'index'])
+        ->name('api.supplier.products');
+    
+    // Error logging endpoint
+    Route::post('/api/log-error', [App\Http\Controllers\Api\ErrorLogController::class, 'store'])
+        ->name('api.log-error');
 
     // New Purchase Order System (Replaces old PO system)
     Route::middleware(['auth'])->group(function () {

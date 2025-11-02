@@ -21,6 +21,7 @@ class PurchaseRequest extends Model
         'requested_by',
         'approved_by',
         'request_date',
+        'supplier_id',
         'approved_at',
         'status',
         'description',
@@ -52,6 +53,14 @@ class PurchaseRequest extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * The supplier associated with this purchase request
+     */
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     /**

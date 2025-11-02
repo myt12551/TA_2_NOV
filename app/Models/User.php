@@ -12,13 +12,12 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
-        'username',   // <-- kembalikan ini
+        'username',
         'email',
         'phone',
+        'address',
         'role',
-        'address',    // jika ada kolom ini
-        'position',   // biarkan jika memang ada di tabel dan nullable
-        'picture',    // biarkan jika memang ada di tabel dan nullable
+        'picture',
         'password',
     ];
 

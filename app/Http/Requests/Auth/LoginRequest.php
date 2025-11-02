@@ -28,7 +28,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'username' => ['required', 'string', 'lowercase'],
+            'username' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -42,12 +42,16 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (!Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
-
-            throw ValidationException::withMessages([
-                'username' => trans('auth.failed'),
-            ]);
+        // Coba login dengan username
+        if (!Auth::attempt(['username' => $this->username, 'password' => $this->password], $this->boolean('remember'))) {
+            // Jika gagal dengan username, coba dengan email
+            if (!Auth::attempt(['email' => $this->username, 'password' => $this->password], $this->boolean('remember'))) {
+                RateLimiter::hit($this->throttleKey());
+                
+                throw ValidationException::withMessages([
+                    'username' => trans('auth.failed'),
+                ]);
+            }
         }
 
         RateLimiter::clear($this->throttleKey());
@@ -81,6 +85,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')) . '|' . $this->ip());
+        return Str::transliterate(Str::lower($this->string('username')) . '|' . $this->ip());
     }
 }

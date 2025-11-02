@@ -44,10 +44,10 @@ class UserController extends Controller
             'name' => 'required|max:255|string',
             'username' => 'required|alpha_dash|string|max:255|unique:users,username',
             'role' => 'required|string|in:supervisor,admin,cashier',
-            'phone' => 'required|numeric|unique:users,phone',
+            'phone' => 'nullable|string|unique:users,phone',
             'email' => 'required|email|unique:users,email',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'position' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png|max:5120'
         ]);
 
@@ -59,7 +59,7 @@ class UserController extends Controller
         $user->phone = $request->phone;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
-        $user->position = $request->position;
+        $user->address = $request->address;
 
         if ($request->hasFile('picture')) {
             $filename = time() . '.' . $request->picture->extension();
@@ -106,10 +106,10 @@ class UserController extends Controller
             'name' => 'required|max:255|string',
             'username' => 'required|alpha_dash|string|max:255|unique:users,username,' . $user->id,
             'role' => 'required|string|in:supervisor,admin,cashier',
-            'phone' => 'required|numeric|unique:users,phone,' . $user->id,
+            'phone' => 'nullable|string|unique:users,phone,' . $user->id,
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
-            'position' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png|max:5120'
         ]);
 
@@ -123,7 +123,7 @@ class UserController extends Controller
             $user->password = Hash::make($request->password);
         }
 
-        $user->position = $request->position;
+        $user->address = $request->address;
 
         if ($request->hasFile('picture')) {
             if ($user->picture != 'profile.jpg') {
