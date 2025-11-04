@@ -25,14 +25,16 @@ class DatabaseSeeder extends Seeder
         ]);
         User::factory(10)->create();
 
-        User::create([
-            'name' => 'Admin',
-            'username' => 'admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('4dm1n@123'),
-            'role' => 'owner',
-            'picture' => 'profile.jpg'
-        ]);
+        User::firstOrCreate(
+            ['username' => 'admin'],
+            [
+                'name' => 'Admin',
+                'email' => 'admin@example.com',
+                'password' => Hash::make('4dm1n@123'),
+                'role' => 'owner',
+                'picture' => 'profile.jpg'
+            ]
+        );
 
         PaymentMethod::create(['name' => 'Tunai']);
         PaymentMethod::create(['name' => 'Debit']);

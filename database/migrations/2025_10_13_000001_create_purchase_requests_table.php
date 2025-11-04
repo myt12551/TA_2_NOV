@@ -27,6 +27,8 @@ return new class extends Migration
             $table->foreignId('requested_by')->constrained('users')->onDelete('cascade');
             // Date the request was submitted
             $table->date('request_date');
+            // Supplier who will fulfill the request
+            $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
             // Current status: draft, pending, approved, rejected, cancelled
             $table->string('status')->default('pending');
             // Approval fields (supervisor)

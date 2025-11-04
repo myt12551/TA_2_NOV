@@ -1,322 +1,254 @@
-@extends('layouts.app')
+<x-layout>
+    <x-slot:title>Detail Purchase Order</x-slot:title>
 
-@section('content')
-<div class="container mx-auto px-4 py-6">
-    <div class="mb-6 flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold mb-2">Detail Purchase Order</h1>
-            <p class="text-gray-600">{{ $po->po_number }}</p>
-        </div>
-        <div class="space-x-2">
-            <a href="{{ route('new-purchase-orders.pdf', $po->id) }}" 
-               class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-               target="_blank">
-                Download PDF
-            </a>
-            @if($po->status === 'draft')
-            <form action="{{ route('new-purchase-orders.mark-sent', $po->id) }}" 
-                  method="POST" class="inline">
-                @csrf
-                <button type="submit"
-                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    Tandai Terkirim
-                </button>
-            </form>
-            @endif
-        </div>
-    </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                @if(session('success'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                @endif
 
-    <!-- PO Status Timeline -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h3 class="text-lg font-semibold mb-4">Status PO</h3>
-        <div class="flex justify-between items-center">
-            <div class="flex-1">
-                <div class="relative">
-                    <div class="h-1 bg-gray-200 w-full absolute top-4"></div>
-                    <div class="flex justify-between relative">
-                        <div class="text-center">
-                            <div class="w-8 h-8 bg-green-500 rounded-full mx-auto flex items-center justify-center text-white">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <p class="mt-2 text-sm">Draft</p>
-                            <p class="text-xs text-gray-500">{{ $po->created_at->format('d/m/Y') }}</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="w-8 h-8 {{ $po->status != 'draft' ? 'bg-green-500' : 'bg-gray-300' }} rounded-full mx-auto flex items-center justify-center text-white">
-                                <i class="fas fa-paper-plane"></i>
-                            </div>
-                            <p class="mt-2 text-sm">Terkirim</p>
-                            @if($po->sent_at)
-                            <p class="text-xs text-gray-500">{{ $po->sent_at->format('d/m/Y') }}</p>
-                            @endif
-                        </div>
-                        <div class="text-center">
-                            <div class="w-8 h-8 {{ $po->status == 'confirmed' ? 'bg-green-500' : 'bg-gray-300' }} rounded-full mx-auto flex items-center justify-center text-white">
-                                <i class="fas fa-handshake"></i>
-                            </div>
-                            <p class="mt-2 text-sm">Dikonfirmasi</p>
-                            @if($po->confirmation_date)
-                            <p class="text-xs text-gray-500">{{ $po->confirmation_date->format('d/m/Y') }}</p>
-                            @endif
-                        </div>
-                        <div class="text-center">
-                            <div class="w-8 h-8 {{ $po->status == 'received' ? 'bg-green-500' : 'bg-gray-300' }} rounded-full mx-auto flex items-center justify-center text-white">
-                                <i class="fas fa-box"></i>
-                            </div>
-                            <p class="mt-2 text-sm">Diterima</p>
-                            @if($po->goodsReceipt)
-                            <p class="text-xs text-gray-500">{{ $po->goodsReceipt->receipt_date->format('d/m/Y') }}</p>
-                            @endif
-                        </div>
-                        <div class="text-center">
-                            <div class="w-8 h-8 {{ $po->status == 'invoiced' ? 'bg-green-500' : 'bg-gray-300' }} rounded-full mx-auto flex items-center justify-center text-white">
-                                <i class="fas fa-file-invoice"></i>
-                            </div>
-                            <p class="mt-2 text-sm">Invoice</p>
-                            @if($po->invoice)
-                            <p class="text-xs text-gray-500">{{ $po->invoice->invoice_date->format('d/m/Y') }}</p>
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Purchase Order #{{ $purchaseOrder->po_number }}</h5>
+                        <div class="btn-group">
+                            <a href="{{ route('new-purchase-orders.pdf', $purchaseOrder->id) }}" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>
+                            @if($purchaseOrder->status === 'draft')
+                                <form action="{{ route('new-purchase-orders.mark-sent', $purchaseOrder->id) }}"
+                                      method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary"
+                                            onclick="return confirm('Tandai PO ini sebagai terkirim?')">
+                                        <i class="fas fa-paper-plane"></i> Kirim ke Supplier
+                                    </button>
+                                </form>
                             @endif
                         </div>
                     </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="mb-3">Informasi PO:</h6>
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td style="width: 150px">Nomor PO</td>
+                                        <td>: {{ $purchaseOrder->po_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tanggal PO</td>
+                                        <td>: {{ $purchaseOrder->po_date->format('d/m/Y') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Status</td>
+                                        <td>: 
+                                            @if($purchaseOrder->status === 'draft')
+                                                <span class="badge bg-warning">Draft</span>
+                                            @elseif($purchaseOrder->status === 'sent')
+                                                <span class="badge bg-info">Terkirim</span>
+                                            @elseif($purchaseOrder->status === 'confirmed')
+                                                <span class="badge bg-primary">Dikonfirmasi</span>
+                                            @elseif($purchaseOrder->status === 'received')
+                                                <span class="badge bg-success">Diterima</span>
+                                            @elseif($purchaseOrder->status === 'invoiced')
+                                                <span class="badge bg-secondary">Ditagih</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Dibuat Oleh</td>
+                                        <td>: {{ $purchaseOrder->creator->name }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="mb-3">Informasi Supplier:</h6>
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td style="width: 150px">Nama</td>
+                                        <td>: {{ $purchaseOrder->supplier->name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Alamat</td>
+                                        <td>: {{ $purchaseOrder->supplier->address }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Telepon</td>
+                                        <td>: {{ $purchaseOrder->supplier->phone }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Email</td>
+                                        <td>: {{ $purchaseOrder->supplier->email }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive mb-3">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Produk</th>
+                                        <th>Jumlah</th>
+                                        <th>Satuan</th>
+                                        <th>Harga</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($purchaseOrder->items as $item)
+                                        <tr>
+                                            <td>{{ $item->supplierProduct->name }}</td>
+                                            <td>{{ $item->quantity }}</td>
+                                            <td>{{ $item->supplierProduct->unit }}</td>
+                                            <td class="text-end">{{ number_format($item->price) }}</td>
+                                            <td class="text-end">{{ number_format($item->quantity * $item->price) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="4" class="text-end">Total</th>
+                                        <th class="text-end">{{ number_format($purchaseOrder->total_amount) }}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        @if($purchaseOrder->notes)
+                            <div class="mb-3">
+                                <h6>Catatan:</h6>
+                                <p class="mb-0">{{ $purchaseOrder->notes }}</p>
+                            </div>
+                        @endif
+
+                        <div class="mt-4">
+                            <h6>Riwayat Status:</h6>
+                            <ul class="list-unstyled">
+                                <li>
+                                    <i class="fas fa-check text-success"></i>
+                                    Dibuat pada {{ $purchaseOrder->created_at->format('d/m/Y H:i') }}
+                                    oleh {{ $purchaseOrder->creator->name }}
+                                </li>
+                                @if($purchaseOrder->status !== 'draft')
+                                    <li>
+                                        <i class="fas fa-paper-plane text-info"></i>
+                                        Dikirim ke supplier pada {{ $purchaseOrder->sent_at->format('d/m/Y H:i') }}
+                                        oleh {{ $purchaseOrder->sender->name }}
+                                    </li>
+                                @endif
+                                @if($purchaseOrder->status === 'confirmed')
+                                    <li>
+                                        <i class="fas fa-thumbs-up text-primary"></i>
+                                        Dikonfirmasi supplier pada {{ $purchaseOrder->confirmed_at->format('d/m/Y H:i') }}
+                                    </li>
+                                @endif
+                                @if($purchaseOrder->status === 'received')
+                                    <li>
+                                        <i class="fas fa-box text-success"></i>
+                                        Barang diterima pada {{ $purchaseOrder->received_at->format('d/m/Y H:i') }}
+                                        oleh {{ $purchaseOrder->receiver->name }}
+                                    </li>
+                                @endif
+                                @if($purchaseOrder->status === 'invoiced')
+                                    <li>
+                                        <i class="fas fa-file-invoice text-secondary"></i>
+                                        Faktur dibuat pada {{ $purchaseOrder->invoiced_at->format('d/m/Y H:i') }}
+                                    </li>
+                                @endif
+                            </ul>
+                        </div>
+                    </div>
                 </div>
+
+                @if($purchaseOrder->status === 'sent' || $purchaseOrder->status === 'confirmed')
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Penerimaan Barang</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ route('goods-receipts.store') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="purchase_order_id" value="{{ $purchaseOrder->id }}">
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label required">Nomor Surat Jalan</label>
+                                            <input type="text" name="delivery_number" 
+                                                   class="form-control @error('delivery_number') is-invalid @enderror"
+                                                   value="{{ old('delivery_number') }}" required>
+                                            @error('delivery_number')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label required">Tanggal Terima</label>
+                                            <input type="date" name="receipt_date" 
+                                                   class="form-control @error('receipt_date') is-invalid @enderror"
+                                                   value="{{ old('receipt_date', date('Y-m-d')) }}" required>
+                                            @error('receipt_date')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive mb-3">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Produk</th>
+                                                <th>Jumlah PO</th>
+                                                <th>Satuan</th>
+                                                <th>Jumlah Diterima</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($purchaseOrder->items as $item)
+                                                <tr>
+                                                    <td>
+                                                        {{ $item->supplierProduct->name }}
+                                                        <input type="hidden" 
+                                                               name="items[{{ $loop->index }}][purchase_order_item_id]"
+                                                               value="{{ $item->id }}">
+                                                    </td>
+                                                    <td>{{ $item->quantity }}</td>
+                                                    <td>{{ $item->supplierProduct->unit }}</td>
+                                                    <td>
+                                                        <input type="number" 
+                                                               name="items[{{ $loop->index }}][quantity_received]"
+                                                               class="form-control"
+                                                               value="{{ old("items.{$loop->index}.quantity_received", $item->quantity) }}"
+                                                               min="0" max="{{ $item->quantity }}" required>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Catatan</label>
+                                    <textarea name="notes" class="form-control" rows="3">{{ old('notes') }}</textarea>
+                                </div>
+
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Terima Barang
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
-
-    <div class="grid grid-cols-2 gap-6 mb-6">
-        <!-- PO Info -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-lg font-semibold mb-4">Informasi PO</h3>
-            <div class="space-y-3">
-                <div>
-                    <p class="text-sm text-gray-600">Nomor PO</p>
-                    <p class="font-medium">{{ $po->po_number }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Tanggal PO</p>
-                    <p class="font-medium">{{ $po->po_date->format('d/m/Y') }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Status</p>
-                    <p class="font-medium">{{ ucfirst($po->status) }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Total Amount</p>
-                    <p class="font-medium">Rp {{ number_format($po->total_amount, 0, ',', '.') }}</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Supplier Info -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-lg font-semibold mb-4">Informasi Supplier</h3>
-            <div class="space-y-3">
-                <div>
-                    <p class="text-sm text-gray-600">Nama Supplier</p>
-                    <p class="font-medium">{{ $po->supplier->name }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Contact Person</p>
-                    <p class="font-medium">{{ $po->contact_person }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Telepon</p>
-                    <p class="font-medium">{{ $po->contact_phone }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Estimasi Pengiriman</p>
-                    <p class="font-medium">{{ $po->estimated_delivery_date->format('d/m/Y') }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Items -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h3 class="text-lg font-semibold mb-4">Items</h3>
-        <div class="overflow-x-auto">
-            <table class="min-w-full table-auto">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="px-4 py-2">Produk</th>
-                        <th class="px-4 py-2">Unit</th>
-                        <th class="px-4 py-2">Jumlah</th>
-                        <th class="px-4 py-2">Harga Satuan</th>
-                        <th class="px-4 py-2">Total</th>
-                        <th class="px-4 py-2">Catatan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($po->items as $item)
-                    <tr class="border-b">
-                        <td class="px-4 py-2">{{ $item->product_name }}</td>
-                        <td class="px-4 py-2">{{ $item->unit }}</td>
-                        <td class="px-4 py-2">{{ $item->quantity }}</td>
-                        <td class="px-4 py-2">Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td>
-                        <td class="px-4 py-2">Rp {{ number_format($item->quantity * $item->unit_price, 0, ',', '.') }}</td>
-                        <td class="px-4 py-2">{{ $item->notes }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Action Forms -->
-    @if($po->status === 'sent')
-    <!-- Confirm Form -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h3 class="text-lg font-semibold mb-4">Konfirmasi PO</h3>
-        <form action="{{ route('new-purchase-orders.confirm', $po->id) }}" method="POST">
-            @csrf
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Tanggal Konfirmasi
-                    </label>
-                    <input type="date" name="confirmation_date" required
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Tanggal Pengiriman yang Dikonfirmasi
-                    </label>
-                    <input type="date" name="confirmed_delivery_date" required
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                </div>
-            </div>
-            <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Catatan Supplier
-                </label>
-                <textarea name="supplier_notes" rows="3"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea>
-            </div>
-            <div class="mt-4 flex justify-end">
-                <button type="submit"
-                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    Konfirmasi PO
-                </button>
-            </div>
-        </form>
-    </div>
-    @endif
-
-    @if($po->status === 'confirmed')
-    <!-- Goods Receipt Form -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h3 class="text-lg font-semibold mb-4">Buat Goods Receipt</h3>
-        <form action="{{ route('new-purchase-orders.create-gr', $po->id) }}" method="POST">
-            @csrf
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Tanggal Penerimaan
-                </label>
-                <input type="date" name="receipt_date" required
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full table-auto">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="px-4 py-2">Produk</th>
-                            <th class="px-4 py-2">Jumlah PO</th>
-                            <th class="px-4 py-2">Jumlah Diterima</th>
-                            <th class="px-4 py-2">Catatan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($po->items as $item)
-                        <tr class="border-b">
-                            <td class="px-4 py-2">{{ $item->product_name }}</td>
-                            <td class="px-4 py-2">{{ $item->quantity }}</td>
-                            <td class="px-4 py-2">
-                                <input type="number" name="items[{{ $item->id }}][quantity_received]"
-                                       value="{{ $item->quantity }}" required min="0"
-                                       class="mt-1 block w-24 rounded-md border-gray-300 shadow-sm">
-                            </td>
-                            <td class="px-4 py-2">
-                                <input type="text" name="items[{{ $item->id }}][notes]"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Catatan Penerimaan
-                </label>
-                <textarea name="notes" rows="3"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea>
-            </div>
-            <div class="mt-4 flex justify-end">
-                <button type="submit"
-                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    Buat GR
-                </button>
-            </div>
-        </form>
-    </div>
-    @endif
-
-    @if($po->status === 'received')
-    <!-- Invoice Form -->
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <h3 class="text-lg font-semibold mb-4">Buat Invoice</h3>
-        <form action="{{ route('new-purchase-orders.create-invoice', $po->id) }}" 
-              method="POST" enctype="multipart/form-data">
-            @csrf
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Nomor Invoice
-                    </label>
-                    <input type="text" name="invoice_number" required
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Tanggal Invoice
-                    </label>
-                    <input type="date" name="invoice_date" required
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Tanggal Jatuh Tempo
-                    </label>
-                    <input type="date" name="due_date" required
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Total Invoice
-                    </label>
-                    <input type="number" name="amount" required min="0" step="0.01"
-                           value="{{ $po->total_amount }}"
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                </div>
-            </div>
-            <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    File Invoice
-                </label>
-                <input type="file" name="invoice_file" required accept=".pdf,.jpg,.jpeg,.png"
-                       class="mt-1 block w-full">
-                <p class="mt-1 text-sm text-gray-500">
-                    PDF, JPG, JPEG, atau PNG. Maksimal 2MB.
-                </p>
-            </div>
-            <div class="mt-4 flex justify-end">
-                <button type="submit"
-                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    Buat Invoice
-                </button>
-            </div>
-        </form>
-    </div>
-    @endif
-</div>
-@endsection
+</x-layout>

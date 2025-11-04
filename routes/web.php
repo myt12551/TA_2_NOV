@@ -62,6 +62,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/get-supplier-items/{supplier}', [PurchaseRequestController::class, 'getSupplierItems'])
                 ->name('get.supplier.items');
             
+            // Alternative API endpoint for supplier products
+            Route::get('/api/suppliers/{supplier}/products', [PurchaseRequestController::class, 'getSupplierItems'])
+                ->name('api.supplier.products');
+            
             // Approval Routes (Supervisor Only)
             Route::middleware(IsSupervisor::class)->group(function () {
                 Route::post('/{purchase_request}/approve', [PurchaseRequestController::class, 'approve'])
